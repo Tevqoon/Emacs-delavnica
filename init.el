@@ -49,7 +49,6 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   )
 ;;; * Basic configuration
 
-
 ;;; * Essential packages
 ;;; ** Completion and help
 (use-package which-key			; Keybind completion
@@ -157,14 +156,11 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   :after magit
   :config
   (magit-todos-mode 1))
+
 ;;; ** Lisp programming
 (use-package lisp-mode
   :ensure nil  ; built-in package
-  :hook ((emacs-lisp-mode . setup-check-parens)
-         (lisp-mode . setup-check-parens)
-         (scheme-mode . setup-check-parens)
-         (clojure-mode . setup-check-parens)
-	 (racket-mode . setup-check-parens))
+  :hook (lisp-mode . setup-check-parens)
   :config
   (defun setup-check-parens ()
     (add-hook 'before-save-hook #'check-parens nil t)))

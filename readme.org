@@ -1,0 +1,277 @@
+#+TITLE: A Minimal Emacs Config for Learning
+#+AUTHOR: Jure Smolar
+#+PROPERTY: header-args:emacs-lisp :tangle init.el
+#+STARTUP: overview
+
+This is a literate Emacs configuration built for presentation purposes.
+Each section is self-contained and introduces a coherent cluster of functionality.
+Tangle with ~C-c C-v t~ (or ~org-babel-tangle~) to produce =init.el=.
+
+* Package Management
+We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-package~ as
+the declarative configuration macro throughout.
+
+#+begin_src emacs-lisp
+;;; init.el --- A minimal Emacs config for learning ;;; -*- lexical-binding: t; -*-
+
+;;; * Initial package management
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")))
+(package-initialize)
+(package-refresh-contents)
+(require 'use-package)
+(setq use-package-always-ensure t) 	; Install packages automatically
+
+(use-package exec-path-from-shell	; For MacOS users, stabilises shell paths
+  :functions exec-path-from-shell-initialize
+  :init (exec-path-from-shell-initialize))
+
+;; Use a custom-file to avoid cluttering init.el
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+#+end_src
+
+* Presentation Utilities
+These helpers make it easy to spin up a fresh Emacs instance using any directory
+as its =--init-directory=. Useful for demoing isolated configs during a talk.
+
+- =run-emacs-with-directory= :: prompts for a directory and launches Emacs with it
+- =run-emacs-with-current-directory= :: uses the current buffer's directory
+  - =C-u= prefix enables =--debug-init=
+  - =C-u C-u= prefix runs with =-Q= (no init file at all)
+
+#+begin_src emacs-lisp
+;;; ** Presentation specific config
+;; Helper functions to facilitate working with different configurations
+(defun run-emacs-with-directory (directory &optional arg)
+  (interactive "DDirectory: \nP")
+  (let ((args (cond ((equal arg '(16)) '("-Q"))
+                    (t (list "--init-directory" (expand-file-name directory))))))
+    (when (equal arg '(4))
+      (setq args (cons "--debug-init" args)))
+    (apply #'start-process "emacs" nil "emacs" args)))
+
+(defun run-emacs-with-current-directory (&optional arg)
+  "Run Emacs with the current file's directory as the configuration directory.
+Calling with single prefix ARG (C-u) enables debugging.
+Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
+  (interactive "P")
+  (let* ((current-dir (if buffer-file-name
+                          (file-name-directory buffer-file-name)
+                        default-directory)))
+    (run-emacs-with-directory current-dir arg)))
+#+end_src
+
+** Outline Stars
+[[https://codeberg.org/phmcc/outline-stars][outline-stars]] renders =;;; *=-style comment headers as a proper outline, making
+=prog-mode= files navigable like org files. =<backtab>= cycles the buffer outline.
+
+#+begin_src emacs-lisp
+(use-package outline-stars		; Sections in comments
+  :vc (:url "https://codeberg.org/phmcc/outline-stars")
+  :custom
+  (outline-stars-level-1-overline)
+  (outline-start-default-state 'folded)
+  :config
+  (outline-stars-mode 1)
+  :bind
+  (:map prog-mode-map
+	("<backtab>" . outline-stars-cycle-buffer))
+  )
+;;; * Basic configuration
+
+#+end_src
+
+* Essential Packages
+** Completion and Help
+*** which-key
+Displays available keybindings in a popup after a short delay. Essential for
+discoverability.
+
+#+begin_src emacs-lisp
+;;; * Essential packages
+;;; ** Completion and help
+(use-package which-key			; Keybind completion
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :custom (which-key-idle-delay 0.01))
+#+end_src
+
+*** counsel / ivy / swiper
+Ivy is a completion framework; counsel wraps standard Emacs commands with ivy;
+swiper replaces isearch. Key customisations:
+
+- ~ivy--regex-ignore-order~ :: match all query words regardless of order
+- ~swiper-use-visual-line-p~ set to ~#'ignore~ :: prevents slowness on very long lines
+
+#+begin_src emacs-lisp
+(use-package counsel			; Completion framework
+  :custom
+  (ivy-use-virtual-buffers nil)
+  (ivy-count-format "(%d/%d) ")
+  (ivy-initial-inputs-alist nil)
+  ;; (ivy-dynamic-exhibit-delay-ms 250)
+  :bind (("C-s" . swiper)
+	 ;; ("s-b" . counsel-switch-buffer)
+	 ;; ("M-s s" . swiper-isearch)
+	 ;; ("M-s a" . swiper-all)
+	 :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done))
+  :config
+  (ivy-mode 1)
+  (counsel-mode)
+  ;; NOTE: My preference; I'm not great at remembering order.
+  (setq ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
+  (setq swiper-use-visual-line-p #'ignore) ; Fix for very long files
+  )
+
+(use-package ivy-rich			; Some improvements for ivy
+  :after ivy
+  :config (ivy-rich-mode 1))
+
+(use-package marginalia 		; Command completion annotations
+  :init (marginalia-mode))
+#+end_src
+
+** Editing
+*** expreg
+Incrementally expands the region by syntactic units. Bound to =s-f= (super).
+
+#+begin_src emacs-lisp
+;;; ** Editing
+(use-package expreg 			; Cursor expansion
+  :custom
+  (expreg-restore-point-on-quit t)
+  ;; NOTE: I use the super key which might not be bound on not-macos by default
+  :bind ("s-f" . expreg-expand)
+  )
+#+end_src
+
+*** multiple-cursors + phi-search
+Place cursors on multiple matches and edit them simultaneously.
+~phi-search~ replaces the default isearch inside a multi-cursor session.
+
+| Binding       | Action                  |
+|---------------+-------------------------|
+| =s-<down>=      | mark next like this     |
+| =s-<up>=        | mark previous like this |
+| =s-M-<up/down>= | unmark next/previous    |
+| =s-d=           | mark all (dwim)         |
+| =s-r=           | edit lines              |
+| =s-<mouse-1>=   | add cursor on click     |
+
+#+begin_src emacs-lisp
+(use-package multiple-cursors		; Multiple cursors
+  :defines mc/keymap
+  :defer nil
+  :bind (("s-<down>" . mc/mark-next-like-this)
+	 ("s-<up>" . mc/mark-previous-like-this)
+	 ("s-M-<up>" . mc/unmark-next-like-this)
+	 ("s-M-<down>" . mc/unmark-previous-like-this)
+	 ("s-d" . mc/mark-all-dwim)
+	 ("s-r" . mc/edit-lines)
+	 ("s-<mouse-1>" . mc/add-cursor-on-click)
+	 :map mc/keymap
+	 ("<return>" . nil))
+  ;; By default
+  )
+
+(use-package phi-search)		; In-line search for multiple cursors
+#+end_src
+
+*** iedit
+Edit all occurrences of a symbol in the buffer simultaneously. Toggle with =C-;=.
+
+#+begin_src emacs-lisp
+(use-package iedit			; Editing multiple things at the same time
+  :bind ("C-;" . iedit-mode))
+#+end_src
+
+** Undo
+~undo-fu~ provides linear undo/redo on top of Emacs's branching undo history.
+~vundo~ visualises the full undo tree interactively.
+
+#+begin_src emacs-lisp
+;;; ** Undo
+(use-package undo-fu
+  :bind (("s-z" . undo-fu-only-undo) 	; NOTE: Again, make sure to bind super
+	 ("s-Z" . undo-fu-only-redo)))
+
+(use-package vundo			; Undo-tree
+  :custom
+  (vundo-glyph-alist vundo-unicode-symbols)
+  :bind
+  ("C-x u" . vundo))
+#+end_src
+
+** Searching and Jumping
+*** deadgrep
+
+Ripgrep integration. Opens results in a dedicated buffer. Bound to =<f5>=.
+
+#+begin_src emacs-lisp
+;;; ** Searching and jumping
+(use-package deadgrep			; Ripgrep integration
+  :bind ("<f5>" . deadgrep))
+#+end_src
+
+*** flash
+Jump anywhere on screen (or across windows) using a label-based interface,
+similar to avy/ace-jump. Notable options:
+
+- ~flash-multi-window~ :: jump across all visible windows
+- ~flash-rainbow~ :: colour-coded labels
+- ~flash-autojump nil~ :: don't auto-jump on unique match (easier to follow)
+
+#+begin_src emacs-lisp
+(use-package flash			; Jumping all over the screen
+  :commands (flash-jump flash-jump-continue
+			flash-treesitter)
+  :bind ("s-j" . flash-jump)		; NOTE: Make sure super is bound
+  :custom
+  (flash-multi-window t)
+  (flash-rainbow t)
+  (flash-rainbow-shade 8)
+  (flash-autojump nil) 			; It's hard to keep track of when you get there
+  )
+#+end_src
+
+** Magit
+The definitive git interface for Emacs. ~magit-todos~ surfaces TODO/FIXME comments
+from the repo directly in the Magit status buffer.
+
+#+begin_src emacs-lisp
+;;; ** Magit
+(use-package magit
+  :defer t
+  :bind
+  (("C-x g" . magit-status)
+   ("C-x f" . magit-file-dispatch))
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (magit-process-connection-type nil)
+  )
+
+(use-package hl-todo
+  :config
+  (global-hl-todo-mode 1))
+
+(use-package magit-todos
+  :after magit
+  :config
+  (magit-todos-mode 1))
+#+end_src
+
+** Lisp Programming
+Hooks ~check-parens~ onto ~before-save-hook~ for all Lisp-family modes, catching
+unbalanced parentheses before they hit disk.
+
+#+begin_src emacs-lisp
+;;; ** Lisp programming
+(use-package lisp-mode
+  :ensure nil  ; built-in package
+  :hook (lisp-mode . setup-check-parens)
+  :config
+  (defun setup-check-parens ()
+    (add-hook 'before-save-hook #'check-parens nil t)))
+#+end_src
