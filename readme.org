@@ -69,19 +69,25 @@
 - Further reading: [[https://ryanfaulhaber.com/posts/cool-emacs-evil/][Cool Emacs Things: Evil - Ryan Faulhaber]]
 - Po drugi strani se Neovim vedno bolj približuje Emacsu kot program, ki ga odpreš, ki ima svoj terminal emulator, je programabilen v "resničnem jeziku"
 - Če uporabimo [[https://fennel-lang.org][Fennel]] celo postane Emacs v striktnem smislu urejevalnika teksta ekstenzibilnega v lispu.
+* Kaj je Emacs?
+- Text buffer-based operacijski sistem
+- Grafični program
+- Emacs lisp interpreter
+* Ekstenzibilnost
+[[file:media/is_it_worth_the_time.jpeg]]
 * Malo o keybinds
 - =C= in =M=
 - Vsaka tipka zažene poljubno funkcijo
 - Chording
+- Mnemonika
+- Primer: Narrowing
 * Demo!
 * Poglejmo si osnovno konfiguracijo!
 Emacs bere iz prve obstoječe datoteke in zažene začetno datoteko (ki je Emacs lisp program)
 - =.emacs= 
 - =.emacs.d/init.el= (najbolj standard)
+Zaenkrat bomo stvari poganjali na roke.
 - =.config/emacs/init.el=
--   
-* Osnove dela z Emacsom
-#+transclude: [[file:readme.org::*Cheat sheet][Cheat sheet]]
 * Package Management
 We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-package~ as the declarative configuration macro throughout.
 
@@ -106,11 +112,6 @@ We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-pa
 #+end_src
 
 Hint: Go into the source block and press =C-c C-c=.
-
-* Misc Initial configuration
-#+begin_src emacs-lisp :tangle init.el
-
-#+end_src
 * Themes and aesthetics
 Doom themes is a nice selection of themes from the [[https://github.com/doomemacs/doomemacs][Doom Emacs]] framework.
 
@@ -122,6 +123,21 @@ Doom themes is a nice selection of themes from the [[https://github.com/doomemac
   (load-theme 'doom-solarized-light) 	; My preferred theme
   ;; (load-theme 'doom-solarized-dark)
   )
+#+end_src
+
+
+For nerd-icons, we need [[https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/NerdFontsSymbolsOnly.zip][Symbols Nerd Font (Download)]].
+#+begin_src emacs-lisp :tangle init.el
+(use-package nerd-icons 		; Pretty unicode symbols
+  :defer t)
+
+(use-package doom-modeline		; A more aesthetic modeline
+  :init (doom-modeline-mode 1)
+  (doom-modeline-icon t)		; Add nerd-icon support to the modeline
+  :config
+  (cond ((eq system-type 'gnu/linux)
+	 (setq doom-modeline-height 12))
+	(t (setq doom-modeline-height 24)))) 
 #+end_src
 
 * Presentation Utilities
@@ -239,8 +255,8 @@ Incrementally expands the region by syntactic units. Bound to =s-f= (super).
 #+end_src
 
 *** multiple-cursors + phi-search
-Place cursors on multiple matches and edit them simultaneously.
-~phi-search~ replaces the default isearch inside a multi-cursor session.
+- Place cursors on multiple matches and edit them simultaneously.
+- ~phi-search~ replaces the default isearch inside a multi-cursor session.
 
 | Binding       | Action                  |
 |---------------+-------------------------|
@@ -263,8 +279,7 @@ Place cursors on multiple matches and edit them simultaneously.
 	 ("s-r" . mc/edit-lines)
 	 ("s-<mouse-1>" . mc/add-cursor-on-click)
 	 :map mc/keymap
-	 ("<return>" . nil))
-  ;; By default
+	 ("<return>" . nil))		; This allows us to make a newline at each cursor. Exit with C-g
   )
 
 (use-package phi-search)		; In-line search for multiple cursors
@@ -327,9 +342,61 @@ similar to avy/ace-jump. Notable options:
   )
 #+end_src
 
-** Magit
-The definitive git interface for Emacs. ~magit-todos~ surfaces TODO/FIXME comments
-from the repo directly in the Magit status buffer.
+** Lisp Programming
+#+begin_src emacs-lisp :tangle init.el
+;;; ** Lisp programming
+(use-package lisp-mode
+  :ensure nil  ; built-in package
+  :hook ((emacs-lisp-mode . setup-check-parens)
+         (common-lisp-mode . setup-check-parens)
+         (scheme-mode . setup-check-parens)
+         (clojure-mode . setup-check-parens)
+	 (racket-mode . setup-check-parens))
+  :config
+  (defun setup-check-parens ()
+    (add-hook 'before-save-hook #'check-parens nil t)))
+
+(use-package paren			; Oklepaji
+  :init
+  (electric-pair-mode 1)		; Avtomatično banansiraj oklepaje
+  (show-paren-mode 1)
+  :config
+  (defun js/fix-angle-bracket-syntax ()
+    "Make < and > punctuation instead of paired delimiters."
+    (modify-syntax-entry ?< ".")
+    (modify-syntax-entry ?> "."))
+  :custom
+  (show-paren-delay 0)
+  :hook
+  (LaTeX-mode . js/fix-angle-bracket-syntax)
+  (org-mode . js/fix-angle-bracket-syntax))
+
+(use-package rainbow-delimiters
+  :defer t
+  :hook prog-mode)
+
+#+end_src
+
+* Info in dokumentacija
+Helpful improves the builtin help system and gives more comprehensive documentation buffers for functions, keys, and variables.
+
+#+begin_src emacs-lisp :tangle init.el
+;;; ** Helpful
+(use-package helpful
+  :bind (("<f1> f" . helpful-callable)
+         ("<f1> v" . helpful-variable)
+         ("<f1> k" . helpful-key)
+         :map help-map
+         ("p" . helpful-at-point)
+	 :map helpful-mode-map
+	 ("q" . quit-window--and-kill))
+  :custom
+  (helpful-switch-buffer-function #'switch-to-buffer)
+  (help-window-select t))		; Always jump to the help buffer
+#+end_src
+
+* Magit
+The definitive git interface for Emacs. ~magit-todos~ surfaces TODO/FIXME comments from the repo directly in the Magit status buffer.
 
 #+begin_src emacs-lisp :tangle init.el
 ;;; ** Magit
@@ -353,21 +420,4 @@ from the repo directly in the Magit status buffer.
   (magit-todos-mode 1))
 #+end_src
 
-** Lisp Programming
-Hooks ~check-parens~ onto ~before-save-hook~ for all Lisp-family modes, catching
-unbalanced parentheses before they hit disk.
-
-#+begin_src emacs-lisp :tangle init.el
-;;; ** Lisp programming
-(use-package lisp-mode
-  :ensure nil  ; built-in package
-  :hook ((emacs-lisp-mode . setup-check-parens)
-         (lisp-mode . setup-check-parens)
-         (scheme-mode . setup-check-parens)
-         (clojure-mode . setup-check-parens)
-	 (racket-mode . setup-check-parens))
-  :config
-  (defun setup-check-parens ()
-    (add-hook 'before-save-hook #'check-parens nil t)))
-#+end_src
-
+* Org mode (dopolnimo, če ostane kaj časa)
