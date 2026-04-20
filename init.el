@@ -194,8 +194,7 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
          ("<f1> k" . helpful-key)
          :map help-map
          ("p" . helpful-at-point)
-	 :map helpful-mode-map
-	 ("q" . quit-window--and-kill))
+	 )
   :custom
   (helpful-switch-buffer-function #'switch-to-buffer)
   (help-window-select t))		; Always jump to the help buffer
