@@ -16,31 +16,24 @@
 ;; Use a custom-file to avoid cluttering init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
+;;; * Aesthetics
 (use-package doom-themes
   :init
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'doom-solarized-light) 	; My preferred theme
-  ;; (load-theme 'doom-solarized-light)
+  ;; (load-theme 'doom-solarized-dark)
   )
 
-;;; ** Presentation specific config
-(defun run-emacs-with-directory (directory &optional arg)
-  (interactive "DDirectory: \nP")
-  (let ((args (cond ((equal arg '(16)) '("-Q"))
-                    (t (list "--init-directory" (expand-file-name directory))))))
-    (when (equal arg '(4))
-      (setq args (cons "--debug-init" args)))
-    (apply #'start-process "emacs" nil "emacs" args)))
+(use-package nerd-icons 		; Pretty unicode symbols
+  :defer t)
 
-(defun run-emacs-with-current-directory (&optional arg)
-  "Run Emacs with the current file's directory as the configuration directory.
-Calling with single prefix ARG (C-u) enables debugging.
-Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
-  (interactive "P")
-  (let* ((current-dir (if buffer-file-name
-                          (file-name-directory buffer-file-name)
-                        default-directory)))
-    (run-emacs-with-directory current-dir arg)))
+(use-package doom-modeline		; A more aesthetic modeline
+  :init (doom-modeline-mode 1)
+  (doom-modeline-icon t)		; Add nerd-icon support to the modeline
+  :config
+  (cond ((eq system-type 'gnu/linux)
+	 (setq doom-modeline-height 12))
+	(t (setq doom-modeline-height 24))))
 
 (use-package outline-stars		; Sections in comments
   :vc (:url "https://codeberg.org/phmcc/outline-stars")
@@ -61,6 +54,9 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   :init (which-key-mode)
   :diminish which-key-mode
   :custom (which-key-idle-delay 0.01))
+
+(use-package marginalia 		; Command completion annotations
+  :init (marginalia-mode))
 
 (use-package counsel			; Completion framework
   :custom
@@ -86,9 +82,6 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   :after ivy
   :config (ivy-rich-mode 1))
 
-(use-package marginalia 		; Command completion annotations
-  :init (marginalia-mode))
-
 ;;; ** Editing
 (use-package expreg 			; Cursor expansion
   :custom
@@ -108,8 +101,7 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
 	 ("s-r" . mc/edit-lines)
 	 ("s-<mouse-1>" . mc/add-cursor-on-click)
 	 :map mc/keymap
-	 ("<return>" . nil))
-  ;; By default
+	 ("<return>" . nil))		; This allows us to make a newline at each cursor. Exit with C-g
   )
 
 (use-package phi-search)		; In-line search for multiple cursors
@@ -143,6 +135,50 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   (flash-autojump nil) 			; It's hard to keep track of when you get there
   )
 
+;;; ** Lisp programming
+(use-package lisp-mode
+  :ensure nil  ; built-in package
+  :hook ((emacs-lisp-mode . setup-check-parens)
+         (common-lisp-mode . setup-check-parens)
+         (scheme-mode . setup-check-parens)
+         (clojure-mode . setup-check-parens)
+	 (racket-mode . setup-check-parens))
+  :config
+  (defun setup-check-parens ()
+    (add-hook 'before-save-hook #'check-parens nil t)))
+
+(use-package paren			; Oklepaji
+  :init
+  (electric-pair-mode 1)		; Avtomatično banansiraj oklepaje
+  (show-paren-mode 1)
+  :config
+  (defun js/fix-angle-bracket-syntax ()
+    "Make < and > punctuation instead of paired delimiters."
+    (modify-syntax-entry ?< ".")
+    (modify-syntax-entry ?> "."))
+  :custom
+  (show-paren-delay 0)
+  :hook
+  (LaTeX-mode . js/fix-angle-bracket-syntax)
+  (org-mode . js/fix-angle-bracket-syntax))
+
+(use-package rainbow-delimiters
+  :defer t
+  :hook prog-mode)
+
+;;; ** Helpful
+(use-package helpful
+  :bind (("<f1> f" . helpful-callable)
+         ("<f1> v" . helpful-variable)
+         ("<f1> k" . helpful-key)
+         :map help-map
+         ("p" . helpful-at-point)
+	 :map helpful-mode-map
+	 ("q" . quit-window--and-kill))
+  :custom
+  (helpful-switch-buffer-function #'switch-to-buffer)
+  (help-window-select t))		; Always jump to the help buffer
+
 ;;; ** Magit
 (use-package magit
   :defer t
@@ -162,15 +198,3 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   :after magit
   :config
   (magit-todos-mode 1))
-
-;;; ** Lisp programming
-(use-package lisp-mode
-  :ensure nil  ; built-in package
-  :hook ((emacs-lisp-mode . setup-check-parens)
-         (lisp-mode . setup-check-parens)
-         (scheme-mode . setup-check-parens)
-         (clojure-mode . setup-check-parens)
-	 (racket-mode . setup-check-parens))
-  :config
-  (defun setup-check-parens ()
-    (add-hook 'before-save-hook #'check-parens nil t)))

@@ -82,6 +82,11 @@
 - Mnemonika
 - Primer: Narrowing
 * Demo!
+- Dired kurzorji
+- Roam in Agenda
+- Elfeed in logging
+- Zapiski in spletna stran
+- Po želji
 * Poglejmo si osnovno konfiguracijo!
 Emacs bere iz prve obstoječe datoteke in zažene začetno datoteko (ki je Emacs lisp program)
 - =.emacs= 
@@ -124,7 +129,6 @@ Doom themes is a nice selection of themes from the [[https://github.com/doomemac
   ;; (load-theme 'doom-solarized-dark)
   )
 #+end_src
-
 
 For nerd-icons, we need [[https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/NerdFontsSymbolsOnly.zip][Symbols Nerd Font (Download)]].
 #+begin_src emacs-lisp :tangle init.el
