@@ -24,16 +24,37 @@
   ;; (load-theme 'doom-solarized-dark)
   )
 
-(use-package nerd-icons 		; Pretty unicode symbols
-  :defer t)
+  (use-package nerd-icons 		; Pretty unicode symbols
+    :defer t)
 
-(use-package doom-modeline		; A more aesthetic modeline
-  :init (doom-modeline-mode 1)
-  (doom-modeline-icon t)		; Add nerd-icon support to the modeline
-  :config
-  (cond ((eq system-type 'gnu/linux)
-	 (setq doom-modeline-height 12))
-	(t (setq doom-modeline-height 24))))
+  (use-package doom-modeline		; A more aesthetic modeline
+    :init
+    (doom-modeline-mode 1)
+    :custom
+    (doom-modeline-icon t)		; Add nerd-icon support to the modeline
+    :config
+    (cond ((eq system-type 'gnu/linux)
+  	 (setq doom-modeline-height 12))
+  	(t (setq doom-modeline-height 24))))
+
+;;; * Presentation specific config
+(defun run-emacs-with-directory (directory &optional arg)
+  (interactive "DDirectory: \nP")
+  (let ((args (cond ((equal arg '(16)) '("-Q"))
+                    (t (list "--init-directory" (expand-file-name directory))))))
+    (when (equal arg '(4))
+      (setq args (cons "--debug-init" args)))
+    (apply #'start-process "emacs" nil "emacs" args)))
+
+(defun run-emacs-with-current-directory (&optional arg)
+  "Run Emacs with the current file's directory as the configuration directory.
+Calling with single prefix ARG (C-u) enables debugging.
+Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
+  (interactive "P")
+  (let* ((current-dir (if buffer-file-name
+                          (file-name-directory buffer-file-name)
+                        default-directory)))
+    (run-emacs-with-directory current-dir arg)))
 
 (use-package outline-stars		; Sections in comments
   :vc (:url "https://codeberg.org/phmcc/outline-stars")

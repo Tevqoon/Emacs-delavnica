@@ -30,10 +30,12 @@
 * Emacs
 [[file:media/1280px-Emacs-logo.svg.png]]
 
+
+
 * Zgodovina
 - Emacs je družina urejevalnikov prvotno napisanih v 70ih
 - 1976 (Richard Stallman): Najprej nabor makrov za urejevalnik [[https://en.wikipedia.org/wiki/TECO_(text_editor)][TECO]] (Editor MACroS)
-- 1976 (Dan Weinreb): EINE (EINE is not Emacs) in kasneje ZWEI (ZWEI was Eine Initially) - Emacslike urejevalnika za [[https://en.wikipedia.org/wiki/Lisp_machine][Lisp machines]]
+- 1976 (Dan Weinreb): [[https://en.wikipedia.org/wiki/EINE_and_ZWEI][EINE]] (EINE is not Emacs) in kasneje ZWEI (ZWEI was Eine Initially) - Emacslike urejevalnika za [[https://en.wikipedia.org/wiki/Lisp_machine][Lisp machines]]
 - 1978 (Bernard Greenberg): [[https://en.wikipedia.org/wiki/Multics_Emacs][Multics Emacs]] - napisan in ekstenzibilen v Maclisp
 - 1980 (Zmacs): [[https://en.wikipedia.org/wiki/Zmacs][Zmacs]] - Naslednik ZWEI za [[https://en.wikipedia.org/wiki/Symbolics][Symbolics]] Lisp Machine; komercialno uporabljan do 1997
 - 1981 (James Gosling): [[https://en.wikipedia.org/wiki/Gosling_Emacs][Gosling Emacs]] - Napisan v C, ekstenzibilen v "Mocklisp" jeziku
@@ -56,13 +58,14 @@
 - Nanj lahko gledamo kot operacijski sistem v smislu da nadzira procese, ima paketni sistem, programe, ipd.
 - Ne razlikujemo med kodo programa in njegovo konfiguracijo.
 - To nam omogoča, da programe znotraj Emacsa poljubno šravfamo in povezujemo.
+    
 * Emacs in Vim
 - Klasična primerjava: Vi(m)
 - Vim je model modalnega urejanja s svojo zbirko 
 - Emacs v resnici zamenja ne (le) Vim, ampak 
 - Hkrati Emacs kot popolnost ekstenzije podpira Vi model (in tudi druge modalne sisteme).
 - Imamo vgrajen =viper-mode=, ki doda modalnost. Ta skuša emulirati sam vi.
-- Imamo (najbolj uporabljen) paket [[https://github.com/emacs-evil/evil][evil-mode]], ki skupaj z [[https://github.com/emacs-evil/evil-collection][evil-collection]] (in drugimi dodatki) prinese Vim bindings na praktično vse dele Emacsa.
+- Imamo (najbolj znan) paket [[https://github.com/emacs-evil/evil][evil-mode]], ki skupaj z [[https://github.com/emacs-evil/evil-collection][evil-collection]] (in drugimi dodatki) prinese Vim bindings na praktično vse dele Emacsa.
 - NB je =evil-mode= več kot le "insertion-layer" dodatek. Podpira večino Vim features, tudi Ex komande in registre.
 - V ozadju je še zmeraj Emacsov model - text buffer in ekstenzibilnost z Emacs lisp.
 - Evil mode zato /ne podpira/ VimL dodatkov, je pa velika količina ported v Emacs lisp.
@@ -73,20 +76,38 @@
 - Text buffer-based operacijski sistem
 - Grafični program
 - Emacs lisp interpreter
+
 * Ekstenzibilnost
 [[file:media/is_it_worth_the_time.jpeg]]
 * Malo o keybinds
-- =C= in =M=
+- =C= in =M= (Ctrl in Alt)
+- =C-c C-c=
+- =C-c n f=
 - Vsaka tipka zažene poljubno funkcijo
 - Chording
 - Mnemonika
 - Primer: Narrowing
+
+  
 * Demo!
 - Dired kurzorji
-- Roam in Agenda
+- Org Roam in Agenda
 - Elfeed in logging
 - Zapiski in spletna stran
 - Po želji
+
+  * test
+#+begin_src python :results output
+def f(x, y):
+    return x + y
+
+print(f(3, 2))
+#+end_src
+
+#+RESULTS:
+: 5
+
+
 * Poglejmo si osnovno konfiguracijo!
 Emacs bere iz prve obstoječe datoteke in zažene začetno datoteko (ki je Emacs lisp program)
 - =.emacs= 
@@ -116,6 +137,9 @@ We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-pa
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+end_src
 
+#+RESULTS:
+: /Users/jure/.emacs.d/custom.el
+
 Hint: Go into the source block and press =C-c C-c=.
 * Themes and aesthetics
 Doom themes is a nice selection of themes from the [[https://github.com/doomemacs/doomemacs][Doom Emacs]] framework.
@@ -130,19 +154,26 @@ Doom themes is a nice selection of themes from the [[https://github.com/doomemac
   )
 #+end_src
 
+#+RESULTS:
+
 For nerd-icons, we need [[https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/NerdFontsSymbolsOnly.zip][Symbols Nerd Font (Download)]].
 #+begin_src emacs-lisp :tangle init.el
-(use-package nerd-icons 		; Pretty unicode symbols
-  :defer t)
+  (use-package nerd-icons 		; Pretty unicode symbols
+    :defer t)
 
-(use-package doom-modeline		; A more aesthetic modeline
-  :init (doom-modeline-mode 1)
-  (doom-modeline-icon t)		; Add nerd-icon support to the modeline
-  :config
-  (cond ((eq system-type 'gnu/linux)
-	 (setq doom-modeline-height 12))
-	(t (setq doom-modeline-height 24)))) 
+  (use-package doom-modeline		; A more aesthetic modeline
+    :init
+    (doom-modeline-mode 1)
+    :custom
+    (doom-modeline-icon t)		; Add nerd-icon support to the modeline
+    :config
+    (cond ((eq system-type 'gnu/linux)
+  	 (setq doom-modeline-height 12))
+  	(t (setq doom-modeline-height 24)))) 
 #+end_src
+
+#+RESULTS:
+: t
 
 * Presentation Utilities
 These helpers make it easy to spin up a fresh Emacs instance using any directory
@@ -174,6 +205,9 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
     (run-emacs-with-directory current-dir arg)))
 #+end_src
 
+#+RESULTS:
+: run-emacs-with-current-directory
+
 [[https://codeberg.org/phmcc/outline-stars][outline-stars]] renders =;;; *=-style comment headers as a proper outline, making
 =prog-mode= files navigable like org files. =<backtab>= cycles the buffer outline.
 
@@ -192,6 +226,9 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
 ;;; * Basic configuration
 
 #+end_src
+
+#+RESULTS:
+: outline-stars-cycle-buffer
 
 * Essential Packages
 ** Completion and Help
