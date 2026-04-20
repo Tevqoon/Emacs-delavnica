@@ -1,17 +1,44 @@
-#+TITLE: A Minimal Emacs Config for Learning
+:PROPERTIES:
+:ID:       BA5BE445-3F7A-4956-835B-59598355E4DB
+:END:
+#+TITLE: Emaxxing
 #+AUTHOR: Jure Smolar
-#+PROPERTY: header-args:emacs-lisp :tangle init.el
 #+STARTUP: overview
 
 This is a literate Emacs configuration built for presentation purposes.
 Each section is self-contained and introduces a coherent cluster of functionality.
 Tangle with ~C-c C-v t~ (or ~org-babel-tangle~) to produce =init.el=.
 
+* Cheat sheet
+| Keybind             | Action               | Notes                                                        |
+|---------------------+----------------------+--------------------------------------------------------------|
+| =M-x=                 | =M-x=                  | The list of all interactive functions.                       |
+| =C-g=                 | quit/cancel          | You press this any time something goes wrong.                |
+| =C-x p=               | =project-prefix-map=   | Emacs' built in project management system                    |
+| =C-x 0=               | close window         | There's "no more" of this window                             |
+| =C-x 1=               | close other windows  | Only "one" window left                                       |
+| =C-x 2=               | split window down    | One simply gets used to 2 vs 3                               |
+| =C-x 3=               | split window left    |                                                              |
+| =C-x t ...=           | tab management       | Hint: 0123 work the same; =C-x t 0= closes the current tab etc |
+| =C-x 5 ...=           | frame management     | Likewise follows the 0123 conventions                        |
+| =C-x 4 c=             | make indirect buffer | This is the most useful one out of the misc =C-x 4= actions    |
+|                     |                      | It makes a copy of the current buffer with a different point |
+|                     |                      |                                                              |
+| Info system         |                      | Killer feature - using this we can introspect all of Emacs   |
+| Prefix: =C-h= or =<f1>= | Help map             | I tend to rebind =C-h= to backspace, so I use =<f1>= exclusively |
+| =<f1> f=              | describe-function    |                                                              |
+| =<f1> v=              | describe-variable    |                                                              |
+| =<f1> k=              | describe-keybind     |                                                              |
+| =<f1> b=              | desrcibe-bindings    | Search through all active keybinds. When called with =M-x= it gives its own buffer  |
+
+
+* Emacs
+
 * Package Management
 We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-package~ as
 the declarative configuration macro throughout.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; init.el --- A minimal Emacs config for learning ;;; -*- lexical-binding: t; -*-
 
 ;;; * Initial package management
@@ -30,6 +57,24 @@ the declarative configuration macro throughout.
 ;; Use a custom-file to avoid cluttering init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+end_src
+* Themes and aesthetics
+Doom themes is a nice selection of themes from
+
+Note that when trying out themes manually, it's easiest to use =counsel-load-theme=.
+#+begin_src emacs-lisp
+(counsel-load-theme)
+#+end_src
+Hint: Go into the source block and press =C-c C-c=.
+
+#+begin_src emacs-lisp :tangle init.el
+;;; * Aesthetics
+(use-package doom-themes
+  :init
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme 'doom-solarized-light) 	; My preferred theme
+  ;; (load-theme 'doom-solarized-light)
+  )
+#+end_src
 
 * Presentation Utilities
 These helpers make it easy to spin up a fresh Emacs instance using any directory
@@ -40,9 +85,8 @@ as its =--init-directory=. Useful for demoing isolated configs during a talk.
   - =C-u= prefix enables =--debug-init=
   - =C-u C-u= prefix runs with =-Q= (no init file at all)
 
-#+begin_src emacs-lisp
-;;; ** Presentation specific config
-;; Helper functions to facilitate working with different configurations
+#+begin_src emacs-lisp :tangle init.el
+;;; * Presentation specific config
 (defun run-emacs-with-directory (directory &optional arg)
   (interactive "DDirectory: \nP")
   (let ((args (cond ((equal arg '(16)) '("-Q"))
@@ -62,11 +106,10 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
     (run-emacs-with-directory current-dir arg)))
 #+end_src
 
-** Outline Stars
 [[https://codeberg.org/phmcc/outline-stars][outline-stars]] renders =;;; *=-style comment headers as a proper outline, making
 =prog-mode= files navigable like org files. =<backtab>= cycles the buffer outline.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 (use-package outline-stars		; Sections in comments
   :vc (:url "https://codeberg.org/phmcc/outline-stars")
   :custom
@@ -88,7 +131,7 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
 Displays available keybindings in a popup after a short delay. Essential for
 discoverability.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; * Essential packages
 ;;; ** Completion and help
 (use-package which-key			; Keybind completion
@@ -104,7 +147,7 @@ swiper replaces isearch. Key customisations:
 - ~ivy--regex-ignore-order~ :: match all query words regardless of order
 - ~swiper-use-visual-line-p~ set to ~#'ignore~ :: prevents slowness on very long lines
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 (use-package counsel			; Completion framework
   :custom
   (ivy-use-virtual-buffers nil)
@@ -137,7 +180,7 @@ swiper replaces isearch. Key customisations:
 *** expreg
 Incrementally expands the region by syntactic units. Bound to =s-f= (super).
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; ** Editing
 (use-package expreg 			; Cursor expansion
   :custom
@@ -160,7 +203,7 @@ Place cursors on multiple matches and edit them simultaneously.
 | =s-r=           | edit lines              |
 | =s-<mouse-1>=   | add cursor on click     |
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 (use-package multiple-cursors		; Multiple cursors
   :defines mc/keymap
   :defer nil
@@ -182,7 +225,7 @@ Place cursors on multiple matches and edit them simultaneously.
 *** iedit
 Edit all occurrences of a symbol in the buffer simultaneously. Toggle with =C-;=.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 (use-package iedit			; Editing multiple things at the same time
   :bind ("C-;" . iedit-mode))
 #+end_src
@@ -191,7 +234,7 @@ Edit all occurrences of a symbol in the buffer simultaneously. Toggle with =C-;=
 ~undo-fu~ provides linear undo/redo on top of Emacs's branching undo history.
 ~vundo~ visualises the full undo tree interactively.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; ** Undo
 (use-package undo-fu
   :bind (("s-z" . undo-fu-only-undo) 	; NOTE: Again, make sure to bind super
@@ -209,7 +252,7 @@ Edit all occurrences of a symbol in the buffer simultaneously. Toggle with =C-;=
 
 Ripgrep integration. Opens results in a dedicated buffer. Bound to =<f5>=.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; ** Searching and jumping
 (use-package deadgrep			; Ripgrep integration
   :bind ("<f5>" . deadgrep))
@@ -223,7 +266,7 @@ similar to avy/ace-jump. Notable options:
 - ~flash-rainbow~ :: colour-coded labels
 - ~flash-autojump nil~ :: don't auto-jump on unique match (easier to follow)
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 (use-package flash			; Jumping all over the screen
   :commands (flash-jump flash-jump-continue
 			flash-treesitter)
@@ -240,7 +283,7 @@ similar to avy/ace-jump. Notable options:
 The definitive git interface for Emacs. ~magit-todos~ surfaces TODO/FIXME comments
 from the repo directly in the Magit status buffer.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; ** Magit
 (use-package magit
   :defer t
@@ -266,12 +309,19 @@ from the repo directly in the Magit status buffer.
 Hooks ~check-parens~ onto ~before-save-hook~ for all Lisp-family modes, catching
 unbalanced parentheses before they hit disk.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle init.el
 ;;; ** Lisp programming
 (use-package lisp-mode
   :ensure nil  ; built-in package
-  :hook (lisp-mode . setup-check-parens)
+  :hook ((emacs-lisp-mode . setup-check-parens)
+         (lisp-mode . setup-check-parens)
+         (scheme-mode . setup-check-parens)
+         (clojure-mode . setup-check-parens)
+	 (racket-mode . setup-check-parens))
   :config
   (defun setup-check-parens ()
     (add-hook 'before-save-hook #'check-parens nil t)))
 #+end_src
+
+* Evil mode (not covered explicitly)
+Emacs has a lot of 

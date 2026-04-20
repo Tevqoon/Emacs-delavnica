@@ -16,8 +16,14 @@
 ;; Use a custom-file to avoid cluttering init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
+(use-package doom-themes
+  :init
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme 'doom-solarized-light) 	; My preferred theme
+  ;; (load-theme 'doom-solarized-light)
+  )
+
 ;;; ** Presentation specific config
-;; Helper functions to facilitate working with different configurations
 (defun run-emacs-with-directory (directory &optional arg)
   (interactive "DDirectory: \nP")
   (let ((args (cond ((equal arg '(16)) '("-Q"))
@@ -160,7 +166,11 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
 ;;; ** Lisp programming
 (use-package lisp-mode
   :ensure nil  ; built-in package
-  :hook (lisp-mode . setup-check-parens)
+  :hook ((emacs-lisp-mode . setup-check-parens)
+         (lisp-mode . setup-check-parens)
+         (scheme-mode . setup-check-parens)
+         (clojure-mode . setup-check-parens)
+	 (racket-mode . setup-check-parens))
   :config
   (defun setup-check-parens ()
     (add-hook 'before-save-hook #'check-parens nil t)))
