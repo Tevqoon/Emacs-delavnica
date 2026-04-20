@@ -5,38 +5,85 @@
 #+AUTHOR: Jure Smolar
 #+STARTUP: overview
 
-This is a literate Emacs configuration built for presentation purposes.
-Each section is self-contained and introduces a coherent cluster of functionality.
-Tangle with ~C-c C-v t~ (or ~org-babel-tangle~) to produce =init.el=.
-
 * Cheat sheet
-| Keybind             | Action               | Notes                                                        |
-|---------------------+----------------------+--------------------------------------------------------------|
-| =M-x=                 | =M-x=                  | The list of all interactive functions.                       |
-| =C-g=                 | quit/cancel          | You press this any time something goes wrong.                |
-| =C-x p=               | =project-prefix-map=   | Emacs' built in project management system                    |
-| =C-x 0=               | close window         | There's "no more" of this window                             |
-| =C-x 1=               | close other windows  | Only "one" window left                                       |
-| =C-x 2=               | split window down    | One simply gets used to 2 vs 3                               |
-| =C-x 3=               | split window left    |                                                              |
-| =C-x t ...=           | tab management       | Hint: 0123 work the same; =C-x t 0= closes the current tab etc |
-| =C-x 5 ...=           | frame management     | Likewise follows the 0123 conventions                        |
-| =C-x 4 c=             | make indirect buffer | This is the most useful one out of the misc =C-x 4= actions    |
-|                     |                      | It makes a copy of the current buffer with a different point |
-|                     |                      |                                                              |
-| Info system         |                      | Killer feature - using this we can introspect all of Emacs   |
-| Prefix: =C-h= or =<f1>= | Help map             | I tend to rebind =C-h= to backspace, so I use =<f1>= exclusively |
-| =<f1> f=              | describe-function    |                                                              |
-| =<f1> v=              | describe-variable    |                                                              |
-| =<f1> k=              | describe-keybind     |                                                              |
-| =<f1> b=              | desrcibe-bindings    | Search through all active keybinds. When called with =M-x= it gives its own buffer  |
-
+| Keybind     | Action               | Notes                                                                               |
+|-------------+----------------------+-------------------------------------------------------------------------------------|
+| =M-x=         | =M-x=                  | The list of all interactive functions.                                              |
+| =C-g=         | quit/cancel          | You press this any time something goes wrong.                                       |
+| =C-x p=       | =project-prefix-map=   | Emacs' built in project management system.                                          |
+| =C-x 0=       | close window         | There's "no more" of this window.                                                   |
+| =C-x 1=       | close other windows  | Only "one" window left.                                                             |
+| =C-x 2=       | split window down    | One simply gets used to 2 vs 3.                                                     |
+| =C-x 3=       | split window left    |                                                                                     |
+| =C-x t ...=   | tab management       | Hint: 0123 work the same; =C-x t 0= closes the current tab etc.                       |
+| =C-x 5 ...=   | frame management     | Likewise follows the 0123 conventions.                                              |
+| =C-x 4 c=     | make indirect buffer | Make a copy of the current buffer with a different point.                           |
+|             |                      |                                                                                     |
+| Info system |                      | Killer feature - using this we can introspect all of Emacs.                         |
+| =C-h= or =<f1>= | Help map             | I rebind =C-h= to backspace, so I use =<f1>= exclusively.                               |
+| =<f1> f=      | =describe-function=    | Get documentation for function of a given name.                                     |
+| =<f1> v=      | =describe-variable=    | Get documentation for variable of a given name.                                     |
+| =<f1> k=      | =describe-keybind=     | Get the documentation for whatever is bound to a given key.                         |
+| =<f1> b=      | =describe-bindings=    | Search through all active keybinds. When called with =M-x= it gives a results buffer. |
+(Preostanek bomo izpolnili skupaj na delavnici)
 
 * Emacs
+[[file:media/1280px-Emacs-logo.svg.png]]
 
+* Zgodovina
+- Emacs je družina urejevalnikov prvotno napisanih v 70ih
+- 1976 (Richard Stallman): Najprej nabor makrov za urejevalnik [[https://en.wikipedia.org/wiki/TECO_(text_editor)][TECO]] (Editor MACroS)
+- 1976 (Dan Weinreb): EINE (EINE is not Emacs) in kasneje ZWEI (ZWEI was Eine Initially) - Emacslike urejevalnika za [[https://en.wikipedia.org/wiki/Lisp_machine][Lisp machines]]
+- 1978 (Bernard Greenberg): [[https://en.wikipedia.org/wiki/Multics_Emacs][Multics Emacs]] - napisan in ekstenzibilen v Maclisp
+- 1980 (Zmacs): [[https://en.wikipedia.org/wiki/Zmacs][Zmacs]] - Naslednik ZWEI za [[https://en.wikipedia.org/wiki/Symbolics][Symbolics]] Lisp Machine; komercialno uporabljan do 1997
+- 1981 (James Gosling): [[https://en.wikipedia.org/wiki/Gosling_Emacs][Gosling Emacs]] - Napisan v C, ekstenzibilen v "Mocklisp" jeziku
+- 1983: Gosling začne prodajati Emacs
+- 1984: Stallman začne z izdelavo GNU Emacs kot prvi GNU projekt. C jedro (cca 20% kode), jezik /Emacs lisp/ za preostanek in razširitev
+- 1985 (Dave Conroy): [[https://en.wikipedia.org/wiki/MicroEMACS][MicroEMACS]] - Majhen, prenosljiv Emacs v C; osnova za Pico in nano; Linus Torvalds ga še vedno uporablja
+- 1986 (mg): Javno-domenski Emacs klon, osnovan na MicroEMACS, a bližje GNU Emacs; privzeti urejevalnik OpenBSD in macOS
+- 1991: [[https://en.wikipedia.org/wiki/XEmacs][XEmacs]]: Defunct, nekaj časa največja konkurenca GNU Emacsu.
+- 2009–2015 (Robin Templeton): [[https://www.emacswiki.org/emacs/GuileEmacs][Guile-Emacs]] - Projekt za zamenjavo Elisp stroja z GNU Guile (Scheme); serija GSoC projektov; še vedno v razvoju. "Emacs prihodnosti"
+- 2017 (John Mercouris): [[https://nyxt.atlas.engineer/][Nyxt]] (sprva imenovan nEXT) - spletni brskalnik napisan v Common Lisp, razširljiv v Lispu, navdih Emacs/Vim
+- ~2017 (cxxxr): [[https://github.com/lem-project/lem][Lem]] - splošnonamenski urejevalnik/IDE napisan in razširljiv v Common Lisp
+
+* Lisp machines
+[[file:media/genera.png]]
+
+- Emacs posnema filozofijo [[https://en.wikipedia.org/wiki/Lisp_machine][Lisp machines]] .
+- Celoten sistem je živ in spremenljiv med tekom. OS, urejevalnik, debugger, aplikacije.
+- Vsak objekt si lahko pogledal, skočil na kodo, jo spremenil, ob napaki šel nazaj.
+- Emacs je zgrajen na istem modelu, znotraj samega urejevalnika.
+- Nanj lahko gledamo kot operacijski sistem v smislu da nadzira procese, ima paketni sistem, programe, ipd.
+- Ne razlikujemo med kodo programa in njegovo konfiguracijo.
+- To nam omogoča, da programe znotraj Emacsa poljubno šravfamo in povezujemo.
+* Emacs in Vim
+- Klasična primerjava: Vi(m)
+- Vim je model modalnega urejanja s svojo zbirko 
+- Emacs v resnici zamenja ne (le) Vim, ampak 
+- Hkrati Emacs kot popolnost ekstenzije podpira Vi model (in tudi druge modalne sisteme).
+- Imamo vgrajen =viper-mode=, ki doda modalnost. Ta skuša emulirati sam vi.
+- Imamo (najbolj uporabljen) paket [[https://github.com/emacs-evil/evil][evil-mode]], ki skupaj z [[https://github.com/emacs-evil/evil-collection][evil-collection]] (in drugimi dodatki) prinese Vim bindings na praktično vse dele Emacsa.
+- NB je =evil-mode= več kot le "insertion-layer" dodatek. Podpira večino Vim features, tudi Ex komande in registre.
+- V ozadju je še zmeraj Emacsov model - text buffer in ekstenzibilnost z Emacs lisp.
+- Evil mode zato /ne podpira/ VimL dodatkov, je pa velika količina ported v Emacs lisp.
+- Further reading: [[https://ryanfaulhaber.com/posts/cool-emacs-evil/][Cool Emacs Things: Evil - Ryan Faulhaber]]
+- Po drugi strani se Neovim vedno bolj približuje Emacsu kot program, ki ga odpreš, ki ima svoj terminal emulator, je programabilen v "resničnem jeziku"
+- Če uporabimo [[https://fennel-lang.org][Fennel]] celo postane Emacs v striktnem smislu urejevalnika teksta ekstenzibilnega v lispu.
+* Malo o keybinds
+- =C= in =M=
+- Vsaka tipka zažene poljubno funkcijo
+- Chording
+* Demo!
+* Poglejmo si osnovno konfiguracijo!
+Emacs bere iz prve obstoječe datoteke in zažene začetno datoteko (ki je Emacs lisp program)
+- =.emacs= 
+- =.emacs.d/init.el= (najbolj standard)
+- =.config/emacs/init.el=
+-   
+* Osnove dela z Emacsom
+#+transclude: [[file:readme.org::*Cheat sheet][Cheat sheet]]
 * Package Management
-We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-package~ as
-the declarative configuration macro throughout.
+We use the built-in ~package.el~ with MELPA and GNU ELPA as sources, and ~use-package~ as the declarative configuration macro throughout.
 
 #+begin_src emacs-lisp :tangle init.el
 ;;; init.el --- A minimal Emacs config for learning ;;; -*- lexical-binding: t; -*-
@@ -57,14 +104,15 @@ the declarative configuration macro throughout.
 ;; Use a custom-file to avoid cluttering init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+end_src
-* Themes and aesthetics
-Doom themes is a nice selection of themes from
 
-Note that when trying out themes manually, it's easiest to use =counsel-load-theme=.
-#+begin_src emacs-lisp
-(counsel-load-theme)
-#+end_src
 Hint: Go into the source block and press =C-c C-c=.
+
+* Misc Initial configuration
+#+begin_src emacs-lisp :tangle init.el
+
+#+end_src
+* Themes and aesthetics
+Doom themes is a nice selection of themes from the [[https://github.com/doomemacs/doomemacs][Doom Emacs]] framework.
 
 #+begin_src emacs-lisp :tangle init.el
 ;;; * Aesthetics
@@ -72,7 +120,7 @@ Hint: Go into the source block and press =C-c C-c=.
   :init
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'doom-solarized-light) 	; My preferred theme
-  ;; (load-theme 'doom-solarized-light)
+  ;; (load-theme 'doom-solarized-dark)
   )
 #+end_src
 
@@ -138,6 +186,9 @@ discoverability.
   :init (which-key-mode)
   :diminish which-key-mode
   :custom (which-key-idle-delay 0.01))
+
+(use-package marginalia 		; Command completion annotations
+  :init (marginalia-mode))
 #+end_src
 
 *** counsel / ivy / swiper
@@ -171,9 +222,6 @@ swiper replaces isearch. Key customisations:
 (use-package ivy-rich			; Some improvements for ivy
   :after ivy
   :config (ivy-rich-mode 1))
-
-(use-package marginalia 		; Command completion annotations
-  :init (marginalia-mode))
 #+end_src
 
 ** Editing
@@ -323,5 +371,3 @@ unbalanced parentheses before they hit disk.
     (add-hook 'before-save-hook #'check-parens nil t)))
 #+end_src
 
-* Evil mode (not covered explicitly)
-Emacs has a lot of 
