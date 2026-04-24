@@ -58,7 +58,6 @@
 - Nanj lahko gledamo kot operacijski sistem v smislu da nadzira procese, ima paketni sistem, programe, ipd.
 - Ne razlikujemo med kodo programa in njegovo konfiguracijo.
 - To nam omogoča, da programe znotraj Emacsa poljubno šravfamo in povezujemo.
-    
 * Emacs in Vim
 - Klasična primerjava: Vi(m)
 - Vim je model modalnega urejanja s svojo zbirko 
@@ -106,7 +105,6 @@ print(f(3, 2))
 
 #+RESULTS:
 : 5
-
 
 * Poglejmo si osnovno konfiguracijo!
 Emacs bere iz prve obstoječe datoteke in zažene začetno datoteko (ki je Emacs lisp program)

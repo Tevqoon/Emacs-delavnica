@@ -218,3 +218,11 @@ Calling with double prefix ARG (C-u C-u) runs Emacs with -Q."
   :after magit
   :config
   (magit-todos-mode 1))
+
+(use-package org-roam
+  :bind
+  ("C-c n f" . org-roam-node-find)
+  ("C-c n i" . org-roam-node-insert)
+  :config
+  (setq org-roam-directory "~/Documents/org")
+  (org-roam-db-autosync-mode))
